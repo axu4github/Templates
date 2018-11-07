@@ -3,8 +3,10 @@ from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
 from django.views import generic
 from django.utils import timezone
+from rest_framework import viewsets
 
 from .models import Choice, Question
+from .serializers import QuestionSerializer
 
 
 class IndexView(generic.ListView):
@@ -52,3 +54,11 @@ def vote(request, question_id):
         # user hits the Back button.
         return HttpResponseRedirect(
             reverse('polls:results', args=(question.id,)))
+
+
+class QuestionViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows users to be viewed or edited.
+    """
+    queryset = Question.objects.all()
+    serializer_class = QuestionSerializer
