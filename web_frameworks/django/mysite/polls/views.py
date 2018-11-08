@@ -6,7 +6,7 @@ from django.utils import timezone
 from rest_framework import viewsets
 
 from .models import Choice, Question
-from .serializers import QuestionSerializer
+from .serializers import QuestionSerializer, ChoiceSerializer
 
 
 class IndexView(generic.ListView):
@@ -62,3 +62,11 @@ class QuestionViewSet(viewsets.ModelViewSet):
     """
     queryset = Question.objects.all()
     serializer_class = QuestionSerializer
+
+
+class ChoiceViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows users to be viewed or edited.
+    """
+    queryset = Choice.objects.all()
+    serializer_class = ChoiceSerializer
