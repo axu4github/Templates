@@ -4,6 +4,8 @@ from django.urls import reverse
 from django.views import generic
 from django.utils import timezone
 from rest_framework import viewsets
+from rest_framework.decorators import action
+from rest_framework.response import Response
 
 from .models import Choice, Question
 from .serializers import QuestionSerializer, ChoiceSerializer
@@ -62,6 +64,13 @@ class QuestionViewSet(viewsets.ModelViewSet):
     """
     queryset = Question.objects.all()
     serializer_class = QuestionSerializer
+
+    # @action(detail=False, methods=["get"])
+    def list(self, request):
+        print(list(request.query_params))
+        print(request.query_params is None)
+        return Response(
+            self.get_serializer(Question.objects.all(), many=True).data)
 
 
 class ChoiceViewSet(viewsets.ModelViewSet):

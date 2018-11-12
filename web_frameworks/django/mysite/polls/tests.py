@@ -83,3 +83,38 @@ class QuestionRestAPITest(APITestCase):
         response = self.client.get(reverse("polls:question-list"))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(0, len(json.loads(response.content)))
+
+    def test_list_question(self):
+        url = reverse("polls:question-list")
+        data = {
+            "question_text": "question_text_004",
+            "pub_date": timezone.now()
+        }
+        response = self.client.post(url, data)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(
+            json.loads(response.content)["question_text"],
+            "question_text_004")
+
+        # url = reverse("polls:question-list") + "query/"
+        response = self.client.get(url)
+        self.assertEqual(
+            json.loads(response.content)[0]["question_text"],
+            "question_text_004")
+
+    def test_query_question(self):
+        url = reverse("polls:question-list")
+        data = {
+            "question_text": "question_text_005",
+            "pub_date": timezone.now()
+        }
+        response = self.client.post(url, data)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(
+            json.loads(response.content)["question_text"],
+            "question_text_005")
+
+        url = "{0}?question_text=question_text_005".format(url)
+        print(url)
+        response = self.client.get(url)
+        print(response.content)
