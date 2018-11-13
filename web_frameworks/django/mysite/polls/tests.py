@@ -1,9 +1,12 @@
 import json
+import datetime
 
 from django.utils import timezone
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
+
+from .models import Question, Choice
 
 
 class QuestionRestAPITest(APITestCase):
@@ -96,25 +99,71 @@ class QuestionRestAPITest(APITestCase):
             json.loads(response.content)["question_text"],
             "question_text_004")
 
-        # url = reverse("polls:question-list") + "query/"
         response = self.client.get(url)
         self.assertEqual(
             json.loads(response.content)[0]["question_text"],
             "question_text_004")
 
     def test_query_question(self):
-        url = reverse("polls:question-list")
-        data = {
-            "question_text": "question_text_005",
-            "pub_date": timezone.now()
-        }
-        response = self.client.post(url, data)
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(
-            json.loads(response.content)["question_text"],
-            "question_text_005")
+        q = Question(question_text="question_text_005_001")
+        q.save()
+        q = Question(
+            question_text="question_text_005_002",
+            pub_date=datetime.datetime.strptime(
+                "2018-11-14 10:00:00", "%Y-%m-%d %H:%M:%S"))
+        q.save()
 
-        url = "{0}?question_text=question_text_005".format(url)
-        print(url)
+        query = "question_text=question_text_005_001"
+        query += "&pub_date=2018-11-13 00:00:00 to 2018-11-14 00:00:00"
+        url = reverse("polls:question-list")
+        url = "{0}?{1}".format(url, query)
         response = self.client.get(url)
-        print(response.content)
+        _j = json.loads(response.content)
+
+        self.assertEqual(1, len(_j))
+        self.assertEqual("question_text_005_001", _j[0]["question_text"])
+
+    def test_query_none_question(self):
+        q = Question(question_text="question_text_008_001")
+        q.save()
+        q = Question(
+            question_text="question_text_008_002",
+            pub_date=datetime.datetime.strptime(
+                "2018-11-14 10:00:00", "%Y-%m-%d %H:%M:%S"))
+        q.save()
+
+        query = "pub_date= to 2018-11-13 00:00:00"
+        url = reverse("polls:question-list")
+        url = "{0}?{1}".format(url, query)
+        response = self.client.get(url)
+        _j = json.loads(response.content)
+
+        self.assertEqual(0, len(_j), response.content)
+
+    def test_list_question_relation(self):
+        q = Question(
+            question_text="question_text_006", pub_date=timezone.now())
+        q.save()
+        c = Choice(question=q, choice_text="006_001")
+        c.save()
+
+        response = self.client.get(reverse("polls:choice-list"))
+        self.assertEqual(q.id, json.loads(response.content)[0]["question"])
+
+
+class ChoiceRestAPITest(APITestCase):
+
+    def test_create_choice(self):
+        q = Question(question_text="question_text_007")
+        q.save()
+
+        q2 = Question(question_text="question_text_008")
+        q2.save()
+
+        url = reverse("polls:choice-list")
+        data = {"choice_text": "choice_text_001", "question": q2.id}
+        response = self.client.post(url, data)
+
+        self.assertEqual(response.status_code,
+                         status.HTTP_201_CREATED, response.content)
+        self.assertEqual(q2.id, json.loads(response.content)["question"])

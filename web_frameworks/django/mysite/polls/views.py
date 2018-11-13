@@ -1,11 +1,11 @@
+import datetime
+
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
 from django.views import generic
 from django.utils import timezone
 from rest_framework import viewsets
-from rest_framework.decorators import action
-from rest_framework.response import Response
 
 from .models import Choice, Question
 from .serializers import QuestionSerializer, ChoiceSerializer
@@ -65,12 +65,26 @@ class QuestionViewSet(viewsets.ModelViewSet):
     queryset = Question.objects.all()
     serializer_class = QuestionSerializer
 
-    # @action(detail=False, methods=["get"])
-    def list(self, request):
-        print(list(request.query_params))
-        print(request.query_params is None)
-        return Response(
-            self.get_serializer(Question.objects.all(), many=True).data)
+    def get_queryset(self):
+        queryset = Question.objects.all()
+        question_text = self.request.query_params.get("question_text", None)
+        if question_text is not None:
+            queryset = queryset.filter(question_text=question_text)
+
+        pub_date = self.request.query_params.get("pub_date", None)
+        if pub_date is not None:
+            start, end = pub_date.split("to")
+            if start and start.strip() != '':
+                queryset = queryset.filter(
+                    pub_date__gte=datetime.datetime.strptime(
+                        start.strip(), "%Y-%m-%d %H:%M:%S"))
+
+            if end and end.strip() != '':
+                queryset = queryset.filter(
+                    pub_date__lte=datetime.datetime.strptime(
+                        end.strip(), "%Y-%m-%d %H:%M:%S"))
+
+        return queryset
 
 
 class ChoiceViewSet(viewsets.ModelViewSet):
