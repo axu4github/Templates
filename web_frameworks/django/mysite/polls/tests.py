@@ -1,12 +1,12 @@
 import json
-import datetime
 
-from django.utils import timezone
+from django.utils import timezone, dateparse
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
 
 from .models import Question, Choice
+from core.utils import Utils
 
 
 class QuestionRestAPITest(APITestCase):
@@ -107,14 +107,10 @@ class QuestionRestAPITest(APITestCase):
     def test_query_question(self):
         q = Question(question_text="question_text_005_001")
         q.save()
-        q = Question(
-            question_text="question_text_005_002",
-            pub_date=datetime.datetime.strptime(
-                "2018-11-14 10:00:00", "%Y-%m-%d %H:%M:%S"))
+        q = Question(question_text="question_text_005_002")
         q.save()
 
         query = "question_text=question_text_005_001"
-        query += "&pub_date=2018-11-13 00:00:00 to 2018-11-14 00:00:00"
         url = reverse("polls:question-list")
         url = "{0}?{1}".format(url, query)
         response = self.client.get(url)
@@ -128,8 +124,7 @@ class QuestionRestAPITest(APITestCase):
         q.save()
         q = Question(
             question_text="question_text_008_002",
-            pub_date=datetime.datetime.strptime(
-                "2018-11-14 10:00:00", "%Y-%m-%d %H:%M:%S"))
+            pub_date=Utils.parse_datetime("2018-11-14 10:00:00"))
         q.save()
 
         query = "pub_date= to 2018-11-13 00:00:00"

@@ -1,5 +1,3 @@
-import datetime
-
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
@@ -9,6 +7,7 @@ from rest_framework import viewsets
 
 from .models import Choice, Question
 from .serializers import QuestionSerializer, ChoiceSerializer
+from core.utils import Utils
 
 
 class IndexView(generic.ListView):
@@ -76,13 +75,11 @@ class QuestionViewSet(viewsets.ModelViewSet):
             start, end = pub_date.split("to")
             if start and start.strip() != '':
                 queryset = queryset.filter(
-                    pub_date__gte=datetime.datetime.strptime(
-                        start.strip(), "%Y-%m-%d %H:%M:%S"))
+                    pub_date__gte=Utils.parse_datetime(start))
 
             if end and end.strip() != '':
                 queryset = queryset.filter(
-                    pub_date__lte=datetime.datetime.strptime(
-                        end.strip(), "%Y-%m-%d %H:%M:%S"))
+                    pub_date__lte=Utils.parse_datetime(end))
 
         return queryset
 
