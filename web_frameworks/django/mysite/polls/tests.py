@@ -1,6 +1,6 @@
 import json
 
-from django.utils import timezone, dateparse
+from django.utils import timezone
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
@@ -25,6 +25,19 @@ class QuestionRestAPITest(APITestCase):
         self.assertEqual(
             "question_text_001",
             json.loads(response.content)[0]["question_text"])
+
+    def test_create_none_text_question(self):
+        url = reverse("polls:question-list")
+        data = {
+            "question_text": "              ",
+            "pub_date": timezone.now()
+        }
+        response = self.client.post(url, data)
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_400_BAD_REQUEST,
+            response.content)
+        self.assertTrue(b"not be blank" in response.content)
 
     def test_read_question(self):
         response = self.client.get(reverse("polls:question-list"))
