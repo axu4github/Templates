@@ -45,4 +45,5 @@ urlpatterns = [
         name='schema-redoc'),
     path('polls/', include('polls.urls')),
     path('admin/', admin.site.urls),
+    url(r'^o/', include('oauth2_provider.urls', namespace='oauth2_provider')),
 ]
