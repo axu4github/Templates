@@ -6,7 +6,7 @@ from rest_framework import status
 from rest_framework.test import APITestCase
 
 from .models import Question, Choice
-from core.utils import Utils
+from mysite.core.utils import Utils
 
 
 class QuestionRestAPITest(APITestCase):

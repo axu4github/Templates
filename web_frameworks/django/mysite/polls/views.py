@@ -7,7 +7,7 @@ from rest_framework import viewsets
 
 from .models import Choice, Question
 from .serializers import QuestionSerializer, ChoiceSerializer
-from core.utils import Utils
+from mysite.core.utils import Utils
 
 
 class IndexView(generic.ListView):
