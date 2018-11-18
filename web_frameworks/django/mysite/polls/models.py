@@ -27,13 +27,3 @@ class Choice(models.Model):
 
     def __str__(self):
         return self.choice_text
-
-
-class Tenant(models.Model):
-    name = models.CharField("租户名称", max_length=255)
-    code = models.CharField("租户代码", max_length=255)
-    status = models.CharField("租户状态", max_length=20)
-    type = models.CharField("租户类型", max_length=255)
-    details = models.TextField("租户详情", default="")
-    created = models.DateTimeField("租户创建时间", auto_now=True)
-    modified = models.DateTimeField("租户修改时间", auto_now_add=True)
