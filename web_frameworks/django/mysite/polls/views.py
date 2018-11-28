@@ -3,11 +3,13 @@ from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
 from django.views import generic
 from django.utils import timezone
-from rest_framework import viewsets
+from rest_framework import viewsets, status
+from rest_framework.response import Response
 
 from .models import Choice, Question
 from .serializers import QuestionSerializer, ChoiceSerializer
 from mysite.core.utils import Utils
+from users.models import UserProfile
 
 
 class IndexView(generic.ListView):
@@ -83,9 +85,17 @@ class QuestionViewSet(viewsets.ModelViewSet):
 
         return queryset
 
-    # def list(self, request):
-    #     return Response(
-    #         "user: {0}, auth: {1}".format(request.user.id, request.auth))
+    def create(self, request, *args, **kwargs):
+        request_data = request.data.dict()
+        request_data["owner"] = request.user.id
+        request_data["tenant"] = UserProfile.objects.get(
+            user=request.user).tenant.id
+        serializer = self.get_serializer(data=request_data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(
+            serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
 
 class ChoiceViewSet(viewsets.ModelViewSet):
@@ -94,3 +104,7 @@ class ChoiceViewSet(viewsets.ModelViewSet):
     """
     queryset = Choice.objects.all()
     serializer_class = ChoiceSerializer
+
+    def perform_create(self, serializer):
+        serializer.save(
+            owner=self.request.user, tenant=self.request.user.tenant)
