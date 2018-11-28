@@ -85,17 +85,10 @@ class QuestionViewSet(viewsets.ModelViewSet):
 
         return queryset
 
-    def create(self, request, *args, **kwargs):
-        request_data = request.data.dict()
-        request_data["owner"] = request.user.id
-        request_data["tenant"] = UserProfile.objects.get(
-            user=request.user).tenant.id
-        serializer = self.get_serializer(data=request_data)
-        serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
-        headers = self.get_success_headers(serializer.data)
-        return Response(
-            serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+    def perform_create(self, serializer):
+        serializer.save(
+            owner=self.request.user,
+            tenant=UserProfile.objects.get(user=self.request.user).tenant)
 
 
 class ChoiceViewSet(viewsets.ModelViewSet):
@@ -104,7 +97,3 @@ class ChoiceViewSet(viewsets.ModelViewSet):
     """
     queryset = Choice.objects.all()
     serializer_class = ChoiceSerializer
-
-    def perform_create(self, serializer):
-        serializer.save(
-            owner=self.request.user, tenant=self.request.user.tenant)
