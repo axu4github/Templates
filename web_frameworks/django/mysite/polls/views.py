@@ -83,6 +83,10 @@ class QuestionViewSet(viewsets.ModelViewSet):
 
         return queryset
 
+    # def list(self, request):
+    #     return Response(
+    #         "user: {0}, auth: {1}".format(request.user.id, request.auth))
+
 
 class ChoiceViewSet(viewsets.ModelViewSet):
     """

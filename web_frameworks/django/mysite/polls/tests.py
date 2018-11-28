@@ -1,15 +1,63 @@
 import json
+import base64
 
 from django.utils import timezone
 from django.urls import reverse
+from django.contrib.auth import get_user_model
 from rest_framework import status
 from rest_framework.test import APITestCase
+from oauth2_provider.models import (
+    get_access_token_model, get_application_model
+)
 
-from .models import Question, Choice
+
+from polls.models import Question, Choice
 from mysite.core.utils import Utils
+
+Application = get_application_model()
+AccessToken = get_access_token_model()
+UserModel = get_user_model()
+
+
+def get_basic_auth_header(user, password):
+    user_pass = '{0}:{1}'.format(user, password)
+    auth_string = base64.b64encode(user_pass.encode('utf-8'))
+    auth_headers = {
+        'HTTP_AUTHORIZATION': 'Basic ' + auth_string.decode("utf-8"),
+    }
+
+    return auth_headers
 
 
 class QuestionRestAPITest(APITestCase):
+
+    def setUp(self):
+        self.test_user = UserModel.objects.create_user(
+            "test_user", "test@user.com", "123456")
+
+        self.application = Application(
+            name="Test Application",
+            user=self.test_user,
+            client_type=Application.CLIENT_CONFIDENTIAL,
+            authorization_grant_type=Application.GRANT_PASSWORD,
+        )
+        self.application.save()
+
+        response = self.client.post(
+            reverse('oauth2_provider:token'),
+            data={
+                'grant_type': 'password',
+                'username': 'test_user',
+                'password': '123456',
+            },
+            **get_basic_auth_header(
+                self.application.client_id,
+                self.application.client_secret))
+
+        self.auth_headers = {
+            'HTTP_AUTHORIZATION': 'Bearer ' + json.loads(
+                response.content.decode("utf-8"))["access_token"],
+        }
 
     def test_create_question(self):
         url = reverse("polls:question-list")
@@ -17,10 +65,10 @@ class QuestionRestAPITest(APITestCase):
             "question_text": "question_text_001",
             "pub_date": timezone.now()
         }
-        response = self.client.post(url, data)
+        response = self.client.post(url, data, **self.auth_headers)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-        response = self.client.get(url)
+        response = self.client.get(url, **self.auth_headers)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(
             "question_text_001",
@@ -32,7 +80,7 @@ class QuestionRestAPITest(APITestCase):
             "question_text": "              ",
             "pub_date": timezone.now()
         }
-        response = self.client.post(url, data)
+        response = self.client.post(url, data, **self.auth_headers)
         self.assertEqual(
             response.status_code,
             status.HTTP_400_BAD_REQUEST,
@@ -40,7 +88,8 @@ class QuestionRestAPITest(APITestCase):
         self.assertTrue(b"not be blank" in response.content)
 
     def test_read_question(self):
-        response = self.client.get(reverse("polls:question-list"))
+        response = self.client.get(
+            reverse("polls:question-list"), **self.auth_headers)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(0, len(json.loads(response.content)))
 
@@ -50,7 +99,7 @@ class QuestionRestAPITest(APITestCase):
             "question_text": "question_text_002",
             "pub_date": timezone.now()
         }
-        response = self.client.post(url, data)
+        response = self.client.post(url, data, **self.auth_headers)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(
             json.loads(response.content)["question_text"],
@@ -62,13 +111,13 @@ class QuestionRestAPITest(APITestCase):
             "question_text": "question_text_02_modified",
             "pub_date": timezone.now()
         }
-        response = self.client.put(url, data)
+        response = self.client.put(url, data, **self.auth_headers)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(
             json.loads(response.content)["question_text"],
             "question_text_02_modified")
 
-        response = self.client.get(url)
+        response = self.client.get(url, **self.auth_headers)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(
             json.loads(response.content)["question_text"],
@@ -80,7 +129,7 @@ class QuestionRestAPITest(APITestCase):
             "question_text": "question_text_003",
             "pub_date": timezone.now()
         }
-        response = self.client.post(url, data)
+        response = self.client.post(url, data, **self.auth_headers)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(
             json.loads(response.content)["question_text"],
@@ -88,15 +137,16 @@ class QuestionRestAPITest(APITestCase):
 
         pk = json.loads(response.content)["id"]
 
-        response = self.client.get(url)
+        response = self.client.get(url, **self.auth_headers)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(1, len(json.loads(response.content)))
 
         url = reverse("polls:question-detail", args=(pk,))
-        response = self.client.delete(url)
+        response = self.client.delete(url, **self.auth_headers)
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
-        response = self.client.get(reverse("polls:question-list"))
+        response = self.client.get(
+            reverse("polls:question-list"), **self.auth_headers)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(0, len(json.loads(response.content)))
 
@@ -106,13 +156,13 @@ class QuestionRestAPITest(APITestCase):
             "question_text": "question_text_004",
             "pub_date": timezone.now()
         }
-        response = self.client.post(url, data)
+        response = self.client.post(url, data, **self.auth_headers)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(
             json.loads(response.content)["question_text"],
             "question_text_004")
 
-        response = self.client.get(url)
+        response = self.client.get(url, **self.auth_headers)
         self.assertEqual(
             json.loads(response.content)[0]["question_text"],
             "question_text_004")
@@ -126,7 +176,7 @@ class QuestionRestAPITest(APITestCase):
         query = "question_text=question_text_005_001"
         url = reverse("polls:question-list")
         url = "{0}?{1}".format(url, query)
-        response = self.client.get(url)
+        response = self.client.get(url, **self.auth_headers)
         _j = json.loads(response.content)
 
         self.assertEqual(1, len(_j))
@@ -143,7 +193,7 @@ class QuestionRestAPITest(APITestCase):
         query = "pub_date= to 2018-11-13 00:00:00"
         url = reverse("polls:question-list")
         url = "{0}?{1}".format(url, query)
-        response = self.client.get(url)
+        response = self.client.get(url, **self.auth_headers)
         _j = json.loads(response.content)
 
         self.assertEqual(0, len(_j), response.content)
@@ -155,11 +205,13 @@ class QuestionRestAPITest(APITestCase):
         c = Choice(question=q, choice_text="006_001")
         c.save()
 
-        response = self.client.get(reverse("polls:choice-list"))
+        response = self.client.get(
+            reverse("polls:choice-list"), **self.auth_headers)
+
         self.assertEqual(q.id, json.loads(response.content)[0]["question"])
 
 
-class ChoiceRestAPITest(APITestCase):
+class ChoiceRestAPITest(QuestionRestAPITest):
 
     def test_create_choice(self):
         q = Question(question_text="question_text_007")
@@ -170,7 +222,7 @@ class ChoiceRestAPITest(APITestCase):
 
         url = reverse("polls:choice-list")
         data = {"choice_text": "choice_text_001", "question": q2.id}
-        response = self.client.post(url, data)
+        response = self.client.post(url, data, **self.auth_headers)
 
         self.assertEqual(response.status_code,
                          status.HTTP_201_CREATED, response.content)
