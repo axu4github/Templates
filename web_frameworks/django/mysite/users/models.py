@@ -16,7 +16,8 @@ class Tenant(models.Model):
 
 
 class UserProfile(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    user = models.OneToOneField(
+        User, on_delete=models.CASCADE, blank=True, null=True)
     owner = models.ForeignKey(
         "self", on_delete=models.CASCADE, blank=True, null=True)
     tenant = models.ForeignKey(Tenant, on_delete=models.CASCADE)
