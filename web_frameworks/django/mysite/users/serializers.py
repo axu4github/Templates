@@ -5,20 +5,15 @@ from rest_framework import serializers
 from .models import UserProfile
 
 
+class UserProfileSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = UserProfile
+        fields = ('tenant', 'owner', 'created', 'modified')
+
+
 class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('username', 'email')
-
-
-class UserProfileSerializer(serializers.ModelSerializer):
-
-    user = UserSerializer(many=False)
-
-    class Meta:
-        model = UserProfile
-        fields = '__all__'
-
-    def create(self, validated_data):
-        print(validated_data)
+        fields = ('id', 'username', 'email')

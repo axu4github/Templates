@@ -75,8 +75,13 @@ class UserProfileTest(TestCase):
         #     "user": 1,
         #     "tenant": self.tenant.id
         # }
+        data = {
+            "username": "test_user_001",
+            "email": "test_user_001@user.com",
+            # "tenant": self.tenant.id
+        }
         response = self.client.post(
-            reverse("users:userprofile-list"), data, **self.auth_headers)
+            reverse("users:user-list"), data, **self.auth_headers)
 
         print(response.content)
 
