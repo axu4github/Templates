@@ -65,27 +65,21 @@ class UserProfileTest(TestCase):
 
     def test_create_user(self):
         data = {
-            "user": {
-                "username": "test_user_001",
-                "email": "test_user_001@user.com"
-            },
-            "tenant": self.tenant.id
-        }
-        # data = {
-        #     "user": 1,
-        #     "tenant": self.tenant.id
-        # }
-        data = {
             "username": "test_user_001",
             "email": "test_user_001@user.com",
-            # "tenant": self.tenant.id
+            "tenant": self.tenant.id
         }
         response = self.client.post(
             reverse("users:user-list"), data, **self.auth_headers)
+        response_data = json.loads(response.content)
 
-        print(response.content)
+        self.assertEqual(data["username"], response_data["username"])
+        self.assertEqual(data["email"], response_data["email"])
+        self.assertEqual(data["tenant"], response_data["tenant"])
 
-    # def test_user_profile(self):
+    # def test_read_user(self):
     #     response = self.client.get(
-    #         reverse("users:userprofile-list"), **self.auth_headers)
-    #     print(response.content)
+    #         reverse("users:user-list"), **self.auth_headers)
+    #     response_data = response.content
+
+    #     print(response_data)

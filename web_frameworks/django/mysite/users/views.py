@@ -3,7 +3,7 @@ from rest_framework.response import Response
 from django.contrib.auth.models import User
 
 from .serializers import UserSerializer, UserProfileSerializer
-# from .models import UserProfile
+from .models import UserProfile
 
 
 class UserViewSet(viewsets.ModelViewSet):
