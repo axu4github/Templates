@@ -31,34 +31,36 @@ class TestTenantRestAPI(APITestCase):
         for field, _ in data.items():
             self.assertEqual(data[field], response_data[field])
 
-    # def test_create_tenant_field_name_not_have(self):
-    #     """ 测试创建租户时，名称（必输项）字段不给 """
-    #     response, response_data = self.create_tenant({})
+    def test_create_tenant_field_name_not_have(self):
+        """ 测试创建租户时，名称（必输项）字段不给 """
+        response, response_data = self.create_tenant({})
 
-    #     self.assertEqual(response.status_code,
-    #                      status.HTTP_400_BAD_REQUEST,
-    #                      response.content)
-    #     self.assertTrue("name" in response_data.keys())
-    #     self.assertTrue("is required" in " ".join(response_data["name"]))
+        self.assertEqual(response.status_code,
+                         status.HTTP_400_BAD_REQUEST,
+                         response.content)
+        self.assertTrue("name" in response_data.keys())
+        self.assertTrue("is required" in " ".join(response_data["name"]))
 
-    # def test_create_tenant_field_name_is_have_but_is_null(self):
-    #     """ 测试创建租户时，名称字段有，但是是空值 """
-    #     response, response_data = self.create_tenant({"name": ""})
+    def test_create_tenant_field_name_is_have_but_is_null(self):
+        """ 测试创建租户时，名称字段有，但是是空值 """
+        response, response_data = self.create_tenant({"name": ""})
 
-    #     self.assertEqual(response.status_code,
-    #                      status.HTTP_400_BAD_REQUEST,
-    #                      response.content)
-    #     self.assertTrue("name" in response_data.keys())
-    #     self.assertTrue("not be blank" in " ".join(response_data["name"]))
+        self.assertEqual(response.status_code,
+                         status.HTTP_400_BAD_REQUEST,
+                         response.content)
+        self.assertTrue("name" in response_data.keys())
+        self.assertTrue("not be blank" in " ".join(response_data["name"]))
 
-    # def test_create_tenant_field_code_has_chinese(self):
-    #     """ 测试创建租户时，代码值有中文 """
-    #     response, response_data = self.create_tenant({
-    #         "name": "租户_002",
-    #         "code": "租户代码_002"
-    #     })
+    def test_create_tenant_field_code_has_chinese(self):
+        """ 测试创建租户时，代码值有中文 """
+        response, response_data = self.create_tenant({
+            "name": "租户_002",
+            "code": "租户代码_002"
+        })
 
-    #     self.assertEqual(response.status_code,
-    #                      status.HTTP_400_BAD_REQUEST,
-    #                      response.content)
-    #     print(response_data)
+        self.assertEqual(response.status_code,
+                         status.HTTP_400_BAD_REQUEST,
+                         response.content)
+        self.assertTrue("code" in response_data.keys())
+        self.assertTrue(
+            "can not contain chinese" in " ".join(response_data["code"]))
