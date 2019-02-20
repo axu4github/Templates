@@ -54,6 +54,7 @@ class ProfileSerializer(BaseSerializer):
 
 
 class UserSerializer(BaseSerializer):
+
     userprofile = ProfileSerializer(many=False)
     password = serializers.CharField(
         style={"input_type": "password"},

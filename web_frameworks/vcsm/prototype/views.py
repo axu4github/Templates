@@ -11,30 +11,28 @@ class BaseViewSet(viewsets.ModelViewSet):
     def __init__(self, *args, **kwargs):
         super(BaseViewSet, self).__init__(*args, **kwargs)
 
-    # def create(self, request, *args, **kwargs):
-    #     request_data = request.data
-    #     self.pre_create(request_data)
-    #     controller = self.get_controller()
-    #     response_data = controller.create(request_data)
-    #     self.post_create(request_data, response_data)
-    #     return Response(response_data, status=status.HTTP_201_CREATED)
+    def pre_create(self, request):
+        """ 对象创建前 """
+        return request.data
+
+    def post_create(self, request, response):
+        """ 对象创建后 """
+        return response.data
+
+    def create(self, request, *args, **kwargs):
+        """ 对象创建 """
+        request_data = self.pre_create(request)
+        serializer = self.get_serializer(data=request_data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        response_data = self.post_create(request, serializer)
+        return Response(response_data, status=status.HTTP_201_CREATED)
 
 
 class TenantViewSet(BaseViewSet):
     """ 租户视图 """
     queryset = Tenant.objects.all()
     serializer_class = TenantSerializer
-
-    # def create(self, request, *args, **kwargs):
-    #     request_data = request.data
-    #     serializer = self.get_serializer(data=request_data)
-    #     serializer.is_valid(raise_exception=True)
-    #     self.perform_create(serializer)
-    #     headers = self.get_success_headers(serializer.data)
-    #     return Response(
-    #         serializer.data,
-    #         status=status.HTTP_201_CREATED,
-    #         headers=headers)
 
 
 class UserViewSet(BaseViewSet):
