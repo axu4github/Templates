@@ -8,9 +8,14 @@ from rest_framework.test import APITestCase
 class TestTenantRestAPI(APITestCase):
     """ 测试租户接口 """
 
+    def get_version_uri(self, raw_uri):
+        # return "/{0}/{1}".format("v1", raw_uri)
+        return raw_uri
+
     def create_tenant(self, data):
         """ 创建租户 """
-        response = self.client.post(reverse("prototype:tenant-list"), data)
+        response = self.client.post(
+            self.get_version_uri(reverse("prototype:tenant-list")), data)
         response_data = json.loads(response.content)
         return response, response_data
 

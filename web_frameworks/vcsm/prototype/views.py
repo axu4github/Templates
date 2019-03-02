@@ -21,6 +21,7 @@ class BaseViewSet(viewsets.ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         """ 对象创建 """
+        print(request.version)
         request_data = self.pre_create(request)
         serializer = self.get_serializer(data=request_data)
         serializer.is_valid(raise_exception=True)
