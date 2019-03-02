@@ -22,7 +22,7 @@ class BaseViewSet(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         """ 对象创建 """
         request_data = self.pre_create(request)
-        data = self.get_serializer()._create(data=request_data)
+        data = self.get_serializer().insert(data=request_data)
         response_data = self.post_create(request, data)
         return Response(response_data, status=status.HTTP_201_CREATED)
 

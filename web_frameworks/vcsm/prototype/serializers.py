@@ -32,18 +32,19 @@ class BaseSerializer(serializers.ModelSerializer):
     def __init__(self, *args, **kwargs):
         super(BaseSerializer, self).__init__(*args, **kwargs)
 
-    def pre_create(self, data=None):
+    def pre_insert(self, data=None):
         return data
 
-    def post_create(self, data=None):
+    def post_insert(self, data=None):
         return data
 
-    def _create(self, data=None):
-        request_data = self.pre_create(data)
+    def insert(self, data=None):
+        """ 创建对象 """
+        request_data = self.pre_insert(data)
         self.initial_data = request_data
         self.is_valid(raise_exception=True)
         self.save()
-        response_data = self.post_create(self.data)
+        response_data = self.post_insert(self.data)
         return response_data
 
 
