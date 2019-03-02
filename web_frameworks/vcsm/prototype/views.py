@@ -15,18 +15,15 @@ class BaseViewSet(viewsets.ModelViewSet):
         """ 对象创建前 """
         return request.data
 
-    def post_create(self, request, response):
+    def post_create(self, request, data):
         """ 对象创建后 """
-        return response.data
+        return data
 
     def create(self, request, *args, **kwargs):
         """ 对象创建 """
-        print(request.version)
         request_data = self.pre_create(request)
-        serializer = self.get_serializer(data=request_data)
-        serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
-        response_data = self.post_create(request, serializer)
+        data = self.get_serializer()._create(data=request_data)
+        response_data = self.post_create(request, data)
         return Response(response_data, status=status.HTTP_201_CREATED)
 
 
