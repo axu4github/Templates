@@ -4,6 +4,25 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
 
+from prototype.serializers import TenantSerializer
+
+
+class TestSerializerUse(APITestCase):
+    """ 测试 Serializer 使用方法 """
+
+    def test_insert(self):
+        """ 测试创建方法 """
+        data = {
+            "name": "租户_002",
+            "code": "tenant_002",
+            "type": "类型_002",
+            "details": "详情_002"
+        }
+        response_data = TenantSerializer().insert(data)
+
+        for k, v in data.items():
+            self.assertEqual(v, response_data[k])
+
 
 class TestTenantRestAPI(APITestCase):
     """ 测试租户接口 """
